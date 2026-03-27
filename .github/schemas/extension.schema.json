@@ -21,13 +21,15 @@
       "type": "string",
       "description": "Human-readable display name for the extension.",
       "minLength": 1,
-      "maxLength": 100
+      "maxLength": 100,
+      "examples": ["Media Controls for Command Palette", "Quick Notes", "Clipboard Manager"]
     },
     "description": {
       "type": "string",
       "description": "Short description of the extension.",
       "minLength": 1,
-      "maxLength": 200
+      "maxLength": 200,
+      "examples": ["Manage audio or video playback and switch between media apps directly from Command Palette."]
     },
     "author": {
       "type": "object",
@@ -39,24 +41,28 @@
           "type": "string",
           "description": "Author display name.",
           "minLength": 1,
-          "maxLength": 100
+          "maxLength": 100,
+          "examples": ["Jiri Polasek", "Microsoft"]
         },
         "url": {
           "type": "string",
           "description": "URL to the author's website or profile.",
-          "format": "uri"
+          "format": "uri",
+          "examples": ["https://jiripolasek.com", "https://github.com/microsoft"]
         }
       }
     },
     "icon": {
       "type": "string",
       "description": "Filename of the icon in the same folder. Must be a .png or .svg file.",
-      "pattern": "^[\\w.-]+\\.(png|svg)$"
+      "pattern": "^[\\w.-]+\\.(png|svg)$",
+      "examples": ["icon.png", "icon.svg"]
     },
     "homepage": {
       "type": "string",
       "description": "URL to the project homepage or repository.",
-      "format": "uri"
+      "format": "uri",
+      "examples": ["https://github.com/jiripolasek/MediaControlsExtension"]
     },
     "category": {
       "type": "string",
@@ -83,7 +89,8 @@
         "maxLength": 30
       },
       "maxItems": 5,
-      "uniqueItems": true
+      "uniqueItems": true,
+      "examples": [["media", "playback", "audio"]]
     },
     "installSources": {
       "type": "array",
@@ -97,7 +104,7 @@
           {
             "properties": {
               "type": { "const": "winget" },
-              "id": { "type": "string", "description": "Winget package identifier.", "minLength": 1 }
+              "id": { "type": "string", "description": "Winget package identifier.", "minLength": 1, "examples": ["JiriPolasek.MediaControlsforCommandPalette"] }
             },
             "required": ["type", "id"],
             "additionalProperties": false
@@ -105,7 +112,7 @@
           {
             "properties": {
               "type": { "const": "msstore" },
-              "id": { "type": "string", "description": "Microsoft Store product ID.", "minLength": 1 }
+              "id": { "type": "string", "description": "Microsoft Store product ID.", "minLength": 1, "examples": ["9n3bq81g19k7"] }
             },
             "required": ["type", "id"],
             "additionalProperties": false
@@ -113,7 +120,7 @@
           {
             "properties": {
               "type": { "const": "url" },
-              "uri": { "type": "string", "description": "Direct download or release page URL.", "format": "uri" }
+              "uri": { "type": "string", "description": "Direct download or release page URL.", "format": "uri", "examples": ["https://github.com/jiripolasek/MediaControlsExtension/releases"] }
             },
             "required": ["type", "uri"],
             "additionalProperties": false
