@@ -13,7 +13,7 @@
   "installSources": [
     {
       "type": "url",
-      "uri": "https://github.com/microsoft/CmdPal-Extensions"
+      "uri": "https://github.com/microsoft/CmdPal-Extensions/releases/latest"
     }
   ]
 }
