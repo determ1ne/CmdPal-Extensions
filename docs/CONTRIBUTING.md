@@ -101,7 +101,7 @@ Each object in the `installSources` array has a `type` and a type-specific field
 |------|-------|-------------|---------|
 | `winget` | `id` | The winget package identifier | `"Publisher.PackageName"` |
 | `msstore` | `id` | Microsoft Store product ID | `"9n3bq81g19k7"` |
-| `url` | `uri` | Direct download URL | `"https://example.com/extension.msix"` |
+| `url` | `uri` | Direct download or release page URL | `"https://github.com/publisher/extension/releases"` |
 
 ### 5. Add an icon
 
