@@ -64,22 +64,6 @@
       "format": "uri",
       "examples": ["https://github.com/jiripolasek/MediaControlsExtension"]
     },
-    "category": {
-      "type": "string",
-      "description": "Primary category for the extension.",
-      "enum": [
-        "Developer Tools",
-        "Productivity",
-        "Utilities",
-        "System",
-        "Media",
-        "Communication",
-        "Education",
-        "Entertainment",
-        "Security",
-        "Other"
-      ]
-    },
     "tags": {
       "type": "array",
       "description": "Optional freeform tags for filtering. Maximum 5 tags.",

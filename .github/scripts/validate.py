@@ -43,18 +43,6 @@ REPO_ROOT = pathlib.Path(__file__).resolve().parent.parent.parent
 EXTENSIONS_DIR = REPO_ROOT / "extensions"
 SCHEMA_PATH = REPO_ROOT / ".github" / "schemas" / "extension.schema.json"
 
-VALID_CATEGORIES = {
-    "Developer Tools",
-    "Productivity",
-    "Utilities",
-    "System",
-    "Media",
-    "Communication",
-    "Education",
-    "Entertainment",
-    "Security",
-    "Other",
-}
 
 MAX_TAGS = 5
 MAX_TAG_LENGTH = 30
@@ -211,15 +199,7 @@ def validate_extension(folder: pathlib.Path, schema: dict, id_index: dict[str, p
                     f"exceeds {MAX_ICON_SIZE_KB} KB limit"
                 )
 
-    # 7. Category must be from the predefined list (when provided)
-    category = data.get("category", "")
-    if category and category not in VALID_CATEGORIES:
-        errors.append(
-            f"{folder_name}/extension.json: Invalid category \"{category}\". "
-            f"Must be one of: {', '.join(sorted(VALID_CATEGORIES))}"
-        )
-
-    # 8. Tags validation (when provided)
+    # 7. Tags validation (when provided)
     tags = data.get("tags", [])
     if isinstance(tags, list):
         if len(tags) > MAX_TAGS:

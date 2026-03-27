@@ -67,7 +67,6 @@ Create an `extension.json` file inside your folder. Here is the full template wi
     "name": "Publisher Display Name",
     "url": "https://github.com/publisher"
   },
-  "category": "Utilities",
   "tags": ["tag1", "tag2"],
   "icon": "icon.png",
   "installSources": [
@@ -89,24 +88,10 @@ Create an `extension.json` file inside your folder. Here is the full template wi
 | `title` | **Required** | Human-readable display name (max 100 characters). |
 | `description` | **Required** | Short description of the extension (max 200 characters). |
 | `author` | **Required** | Object with `name` (required, max 100 characters) and `url` (optional). |
-| `category` | Optional | Primary category. Must be one of the valid categories listed below. |
 | `tags` | Optional | Up to 5 freeform tags for filtering (each max 30 characters). |
 | `icon` | **Required** | Filename of the icon in the same folder (e.g., `icon.png`). |
 | `installSources` | **Required** | Array of install source objects. Each has a `type` and a type-specific identifier. See below. |
 | `homepage` | Optional | URL to the project homepage or repository. |
-
-#### Valid categories
-
-- `Developer Tools`
-- `Productivity`
-- `Utilities`
-- `System`
-- `Media`
-- `Communication`
-- `Education`
-- `Entertainment`
-- `Security`
-- `Other`
 
 #### Install source types
 

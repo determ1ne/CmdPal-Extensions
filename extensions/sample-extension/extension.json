@@ -9,7 +9,6 @@
   },
   "icon": "icon.png",
   "homepage": "https://github.com/microsoft/CmdPal-Extensions",
-  "category": "Developer Tools",
   "tags": ["sample", "demo", "template"],
   "installSources": [
     {

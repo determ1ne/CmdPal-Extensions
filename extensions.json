@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/microsoft/CmdPal-Extensions/main/.github/schemas/gallery.schema.json",
   "version": "1.0",
-  "generatedAt": "2026-03-27T13:00:10Z",
+  "generatedAt": "2026-03-27T14:25:06Z",
   "extensionCount": 1,
   "extensions": [
     {
@@ -13,7 +13,6 @@
         "url": "https://github.com/microsoft"
       },
       "homepage": "https://github.com/microsoft/CmdPal-Extensions",
-      "category": "Developer Tools",
       "tags": [
         "sample",
         "demo",
