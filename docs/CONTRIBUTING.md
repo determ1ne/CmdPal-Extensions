@@ -15,7 +15,7 @@ Before you begin, make sure you have:
 - Your extension **already published** on one of the supported install sources:
   - [winget](https://github.com/microsoft/winget-pkgs) (Windows Package Manager)
   - [Microsoft Store](https://apps.microsoft.com/)
-  - Direct download URL
+  - Direct download or release page URL
 
 ## Step-by-step submission guide
 
