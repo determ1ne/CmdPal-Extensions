@@ -49,8 +49,8 @@ MAX_TAG_LENGTH = 30
 MAX_ICON_SIZE_KB = 100
 VALID_ICON_EXTENSIONS = {".png", ".svg"}
 
-# V2 id format: lowercase alphanumeric slug with hyphens (e.g. "media-controls")
-ID_PATTERN = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
+# V2 id format: author.extension-name (e.g. "jiripolasek.media-controls")
+ID_PATTERN = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*\.[a-z0-9]+(-[a-z0-9]+)*$")
 
 
 # ---------------------------------------------------------------------------
@@ -68,27 +68,35 @@ def load_schema() -> dict:
 
 def discover_extension_folders_from_files(changed_files: List[str]) -> Set[pathlib.Path]:
     """Given a list of changed file paths, return the set of extension folder
-    paths (absolute) that were touched."""
+    paths (absolute) that were touched.
+    Extensions live at extensions/<author>/<extension-name>/."""
     folders: Set[pathlib.Path] = set()
     for raw in changed_files:
         p = pathlib.Path(raw).resolve()
-        # Walk up to find a path whose parent is the extensions/ dir.
-        # e.g. extensions/quick-notes/extension.json -> extensions/quick-notes
         try:
             rel = p.relative_to(EXTENSIONS_DIR)
         except ValueError:
             continue  # not under extensions/
-        top_folder = EXTENSIONS_DIR / rel.parts[0]
-        if top_folder.is_dir():
-            folders.add(top_folder)
+        # Need at least 2 levels: author/extension-name
+        if len(rel.parts) >= 2:
+            ext_folder = EXTENSIONS_DIR / rel.parts[0] / rel.parts[1]
+            if ext_folder.is_dir():
+                folders.add(ext_folder)
     return folders
 
 
 def discover_all_extension_folders() -> Set[pathlib.Path]:
-    """Return every immediate sub-directory of extensions/."""
+    """Return every extension folder under extensions/<author>/<ext>/."""
     if not EXTENSIONS_DIR.is_dir():
         return set()
-    return {d for d in EXTENSIONS_DIR.iterdir() if d.is_dir()}
+    folders: Set[pathlib.Path] = set()
+    for author_dir in EXTENSIONS_DIR.iterdir():
+        if not author_dir.is_dir():
+            continue
+        for ext_dir in author_dir.iterdir():
+            if ext_dir.is_dir():
+                folders.add(ext_dir)
+    return folders
 
 
 def git_diff_changed_files() -> List[str]:
@@ -112,21 +120,24 @@ def build_id_index(exclude_folder: pathlib.Path | None = None) -> dict[str, path
     index: dict[str, pathlib.Path] = {}
     if not EXTENSIONS_DIR.is_dir():
         return index
-    for folder in EXTENSIONS_DIR.iterdir():
-        if not folder.is_dir():
+    for author_dir in EXTENSIONS_DIR.iterdir():
+        if not author_dir.is_dir():
             continue
-        if exclude_folder and folder.resolve() == exclude_folder.resolve():
-            continue
-        ext_json = folder / "extension.json"
-        if ext_json.exists():
-            try:
-                with open(ext_json, encoding="utf-8") as fh:
-                    data = json.load(fh)
-                ext_id = data.get("id")
-                if ext_id:
-                    index[ext_id] = folder
-            except (json.JSONDecodeError, OSError):
-                pass  # skip broken files; they'll be caught during their own validation
+        for folder in author_dir.iterdir():
+            if not folder.is_dir():
+                continue
+            if exclude_folder and folder.resolve() == exclude_folder.resolve():
+                continue
+            ext_json = folder / "extension.json"
+            if ext_json.exists():
+                try:
+                    with open(ext_json, encoding="utf-8") as fh:
+                        data = json.load(fh)
+                    ext_id = data.get("id")
+                    if ext_id:
+                        index[ext_id] = folder
+                except (json.JSONDecodeError, OSError):
+                    pass
     return index
 
 
@@ -139,11 +150,13 @@ def validate_extension(folder: pathlib.Path, schema: dict, id_index: dict[str, p
     """Validate a single extension folder. Returns a list of error strings."""
     errors: List[str] = []
     folder_name = folder.name
+    author_name = folder.parent.name
+    display_path = f"{author_name}/{folder_name}"
     ext_json_path = folder / "extension.json"
 
     # 1. extension.json must exist
     if not ext_json_path.exists():
-        errors.append(f"{folder_name}: Missing required file extension.json")
+        errors.append(f"{display_path}: Missing required file extension.json")
         return errors  # nothing more to check
 
     # 2. Must be valid JSON
@@ -151,7 +164,7 @@ def validate_extension(folder: pathlib.Path, schema: dict, id_index: dict[str, p
         with open(ext_json_path, encoding="utf-8") as fh:
             data = json.load(fh)
     except json.JSONDecodeError as exc:
-        errors.append(f"{folder_name}/extension.json: Invalid JSON – {exc}")
+        errors.append(f"{display_path}/extension.json: Invalid JSON – {exc}")
         return errors
 
     # 3. JSON Schema validation
@@ -159,21 +172,23 @@ def validate_extension(folder: pathlib.Path, schema: dict, id_index: dict[str, p
         jsonschema.validate(instance=data, schema=schema)
     except jsonschema.ValidationError as exc:
         path = " -> ".join(str(p) for p in exc.absolute_path) if exc.absolute_path else "(root)"
-        errors.append(f"{folder_name}/extension.json: Schema validation error at '{path}': {exc.message}")
+        errors.append(f"{display_path}/extension.json: Schema validation error at '{path}': {exc.message}")
 
-    # 4. id must match folder name
+    # 4. id must match folder path (author/extension-name -> author.extension-name)
     ext_id = data.get("id", "")
-    if ext_id != folder_name:
+    author_dir = folder.parent.name
+    expected_id = f"{author_dir}.{folder_name}"
+    if ext_id != expected_id:
         errors.append(
-            f"{folder_name}/extension.json: 'id' field \"{ext_id}\" "
-            f"does not match folder name \"{folder_name}\""
+            f"{author_dir}/{folder_name}/extension.json: 'id' field \"{ext_id}\" "
+            f"does not match expected \"{expected_id}\" (from folder path {author_dir}/{folder_name}/)"
         )
 
-    # 5. id must be a valid V2 slug (lowercase alphanumeric + hyphens)
+    # 5. id must be a valid author.extension-name format
     if ext_id and not ID_PATTERN.match(ext_id):
         errors.append(
-            f"{folder_name}/extension.json: 'id' field \"{ext_id}\" is not a valid slug. "
-            f"Must be lowercase alphanumeric with hyphens (e.g. \"quick-notes\")."
+            f"{author_dir}/{folder_name}/extension.json: 'id' field \"{ext_id}\" is not valid. "
+            f"Must be author.extension-name format (e.g. \"jiripolasek.media-controls\")."
         )
 
     # 6. Icon file must exist, be PNG/SVG, and ≤100 KB
@@ -182,20 +197,20 @@ def validate_extension(folder: pathlib.Path, schema: dict, id_index: dict[str, p
         icon_path = folder / icon_filename
         if not icon_path.exists():
             errors.append(
-                f"{folder_name}/extension.json: Icon file \"{icon_filename}\" "
-                f"not found in {folder_name}/"
+                f"{display_path}/extension.json: Icon file \"{icon_filename}\" "
+                f"not found in {display_path}/"
             )
         else:
             suffix = icon_path.suffix.lower()
             if suffix not in VALID_ICON_EXTENSIONS:
                 errors.append(
-                    f"{folder_name}/{icon_filename}: Icon must be .png or .svg "
+                    f"{display_path}/{icon_filename}: Icon must be .png or .svg "
                     f"(got \"{suffix}\")"
                 )
             size_kb = icon_path.stat().st_size / 1024
             if size_kb > MAX_ICON_SIZE_KB:
                 errors.append(
-                    f"{folder_name}/{icon_filename}: Icon is {size_kb:.1f} KB, "
+                    f"{display_path}/{icon_filename}: Icon is {size_kb:.1f} KB, "
                     f"exceeds {MAX_ICON_SIZE_KB} KB limit"
                 )
 
@@ -204,22 +219,23 @@ def validate_extension(folder: pathlib.Path, schema: dict, id_index: dict[str, p
     if isinstance(tags, list):
         if len(tags) > MAX_TAGS:
             errors.append(
-                f"{folder_name}/extension.json: Too many tags ({len(tags)}). "
+                f"{display_path}/extension.json: Too many tags ({len(tags)}). "
                 f"Maximum is {MAX_TAGS}."
             )
         for i, tag in enumerate(tags):
             if isinstance(tag, str) and len(tag) > MAX_TAG_LENGTH:
                 errors.append(
-                    f"{folder_name}/extension.json: Tag #{i + 1} \"{tag}\" "
+                    f"{display_path}/extension.json: Tag #{i + 1} \"{tag}\" "
                     f"exceeds {MAX_TAG_LENGTH} character limit ({len(tag)} chars)"
                 )
 
     # 9. Duplicate ID check across the gallery
     if ext_id and ext_id in id_index:
         other = id_index[ext_id]
+        other_display = f"{other.parent.name}/{other.name}"
         errors.append(
-            f"{folder_name}/extension.json: Duplicate id \"{ext_id}\" — "
-            f"already used by {other.name}/"
+            f"{display_path}/extension.json: Duplicate id \"{ext_id}\" — "
+            f"already used by {other_display}/"
         )
 
     return errors
@@ -269,7 +285,8 @@ def main() -> int:
     validated_count = 0
 
     for folder in sorted(folders):
-        print(f"Validating {folder.name}/ ...")
+        display = f"{folder.parent.name}/{folder.name}"
+        print(f"Validating {display}/ ...")
         # Build ID index excluding the current folder to detect duplicates elsewhere
         id_index = build_id_index(exclude_folder=folder)
         errors = validate_extension(folder, schema, id_index)
@@ -278,7 +295,7 @@ def main() -> int:
                 print(f"  ❌ {err}")
             total_errors.extend(errors)
         else:
-            print(f"  ✅ {folder.name} is valid")
+            print(f"  ✅ {display} is valid")
         validated_count += 1
 
     # Summary

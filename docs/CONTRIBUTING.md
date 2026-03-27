@@ -34,24 +34,24 @@ git checkout -b add-my-extension
 Create a folder under `extensions/` using the naming convention:
 
 ```
-extensions/<extension-id>/
+extensions/<author>/<extension-name>/
 ```
 
 **Naming rules:**
 
 | Rule | Detail |
 |------|--------|
-| Format | `<extension-id>` — a simple slug |
-| Characters | Lowercase alphanumeric characters and hyphens only (`a-z`, `0-9`, `-`) |
-| Hyphens | Use hyphens to separate words (e.g., `quick-notes`, not `quicknotes`) |
-| No leading/trailing hyphens | Must start and end with an alphanumeric character |
+| Structure | `<author>/<extension-name>` — author folder containing extension folder |
+| Author | Your name or org, lowercase alphanumeric + hyphens (e.g., `jiripolasek`, `microsoft`) |
+| Extension name | Lowercase alphanumeric + hyphens (e.g., `media-controls`) |
+| No leading/trailing hyphens | Each segment must start and end with an alphanumeric character |
 
 **Examples:**
 
-- ✅ `media-controls`
-- ✅ `clipboard-manager`
-- ❌ `MediaControls` (uppercase not allowed)
-- ❌ `clipboard_manager` (underscores not allowed)
+- ✅ `jiripolasek/media-controls`
+- ✅ `my-company/clipboard-manager`
+- ❌ `MediaControls` (missing author folder, uppercase)
+- ❌ `my_company/clipboard_manager` (underscores not allowed)
 
 ### 4. Add `extension.json`
 
@@ -59,8 +59,8 @@ Create an `extension.json` file inside your folder. Here is the full template wi
 
 ```json
 {
-  "$schema": "../../.github/schemas/extension.schema.json",
-  "id": "my-extension",
+  "$schema": "../../../.github/schemas/extension.schema.json",
+  "id": "publisher.my-extension",
   "title": "My Extension",
   "description": "A short description of what the extension does (max 200 characters).",
   "author": {
@@ -83,8 +83,8 @@ Create an `extension.json` file inside your folder. Here is the full template wi
 
 | Field | Required | Description |
 |-------|----------|-------------|
-| `$schema` | Optional | Path to the JSON schema. Enables editor autocompletion and validation. Use `"../../.github/schemas/extension.schema.json"`. |
-| `id` | **Required** | Unique identifier slug (e.g., `media-controls`). **Must match your folder name exactly.** |
+| `$schema` | Optional | Path to the JSON schema. Enables editor autocompletion and validation. Use `"../../../.github/schemas/extension.schema.json"`. |
+| `id` | **Required** | Unique identifier in `author.extension-name` format (e.g., `jiripolasek.media-controls`). **Must match your folder path** (`author/extension-name`). |
 | `title` | **Required** | Human-readable display name (max 100 characters). |
 | `description` | **Required** | Short description of the extension (max 200 characters). |
 | `author` | **Required** | Object with `name` (required, max 100 characters) and `url` (optional). |
@@ -117,8 +117,8 @@ Place an icon file in your extension folder alongside `extension.json`.
 Push your branch to your fork and open a pull request targeting the `main` branch of this repository.
 
 ```bash
-git add extensions/my-extension/
-git commit -m "Add my-extension to gallery"
+git add extensions/my-publisher/my-extension/
+git commit -m "Add my-publisher.my-extension to gallery"
 git push origin add-my-extension
 ```
 
@@ -130,7 +130,7 @@ Our CI pipeline automatically validates your submission. It checks that:
 
 - Your `extension.json` conforms to the schema
 - Required fields are present and correctly formatted
-- The `id` matches the folder name
+- The `id` matches the folder path (`author.extension-name` ↔ `author/extension-name/`)
 - The icon file exists and is within size limits
 
 If the CI reports errors, review the logs, fix the issues, and push updated commits to your PR branch.
@@ -144,14 +144,14 @@ A maintainer will review your PR. Once approved and merged, your extension will 
 To update an already-published extension (e.g., bump the version, update the description, or change the icon):
 
 1. Create a new branch in your fork
-2. Update the files in your existing `extensions/<extension-id>/` folder
+2. Update the files in your existing `extensions/<author>/<extension-name>/` folder
 3. Open a new pull request targeting `main`
 
 The same CI validation and review process applies.
 
 ## Reference
 
-See [`extensions/sample-extension/`](../extensions/sample-extension/) for a complete working example of a gallery submission.
+See [`extensions/microsoft/sample-extension/`](../extensions/microsoft/sample-extension/) for a complete working example of a gallery submission.
 
 ## Schema reference
 
@@ -159,7 +159,7 @@ For editor autocompletion and inline validation, add the `$schema` property to t
 
 ```json
 {
-  "$schema": "../../.github/schemas/extension.schema.json"
+  "$schema": "../../../.github/schemas/extension.schema.json"
 }
 ```
 

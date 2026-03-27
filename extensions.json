@@ -1,11 +1,11 @@
 {
   "$schema": "https://raw.githubusercontent.com/microsoft/CmdPal-Extensions/main/.github/schemas/gallery.schema.json",
   "version": "1.0",
-  "generatedAt": "2026-03-27T14:25:06Z",
+  "generatedAt": "2026-03-27T14:34:28Z",
   "extensionCount": 1,
   "extensions": [
     {
-      "id": "sample-extension",
+      "id": "microsoft.sample-extension",
       "title": "Sample Extension",
       "description": "A sample Command Palette extension to demonstrate the gallery submission format.",
       "author": {
@@ -21,10 +21,10 @@
       "installSources": [
         {
           "type": "url",
-          "uri": "https://github.com/microsoft/CmdPal-Extensions"
+          "uri": "https://github.com/microsoft/CmdPal-Extensions/releases/latest"
         }
       ],
-      "iconUrl": "https://raw.githubusercontent.com/microsoft/CmdPal-Extensions/main/extensions/sample-extension/icon.png"
+      "iconUrl": "https://raw.githubusercontent.com/microsoft/CmdPal-Extensions/main/extensions/microsoft/sample-extension/icon.png"
     }
   ]
 }

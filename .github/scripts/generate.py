@@ -29,8 +29,8 @@ FIELDS_TO_REMOVE = {"$schema", "icon"}
 
 
 def discover_extension_paths() -> list[str]:
-    """Return sorted paths to every extension.json under extensions/."""
-    pattern = os.path.join(EXTENSIONS_DIR, "*", "extension.json")
+    """Return sorted paths to every extension.json under extensions/<author>/<ext>/."""
+    pattern = os.path.join(EXTENSIONS_DIR, "*", "*", "extension.json")
     return sorted(glob.glob(pattern))
 
 
@@ -60,8 +60,10 @@ def load_extension(path: str) -> dict | None:
 
 
 def build_icon_url(extension_id: str, icon_filename: str) -> str:
-    """Build the absolute raw GitHub URL for an extension's icon."""
-    return f"{BASE_RAW_URL}/extensions/{extension_id}/{icon_filename}"
+    """Build the absolute raw GitHub URL for an extension's icon.
+    The id is author.extension-name, mapping to extensions/author/extension-name/."""
+    author, ext_name = extension_id.split(".", 1)
+    return f"{BASE_RAW_URL}/extensions/{author}/{ext_name}/{icon_filename}"
 
 
 def transform_extension(data: dict) -> dict:
