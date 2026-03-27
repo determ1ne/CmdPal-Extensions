@@ -7,7 +7,7 @@ and has no duplicate IDs across the gallery.
 
 Usage:
     # Validate extensions touched by specific changed files (CI mode)
-    python scripts/validate.py extensions/contoso.quick-notes/extension.json
+    python scripts/validate.py extensions/quick-notes/extension.json
 
     # Validate ALL extensions in the gallery
     python scripts/validate.py
@@ -22,6 +22,7 @@ import argparse
 import json
 import os
 import pathlib
+import re
 import subprocess
 import sys
 from typing import List, Set
@@ -60,6 +61,9 @@ MAX_TAG_LENGTH = 30
 MAX_ICON_SIZE_KB = 100
 VALID_ICON_EXTENSIONS = {".png", ".svg"}
 
+# V2 id format: lowercase alphanumeric slug with hyphens (e.g. "media-controls")
+ID_PATTERN = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
+
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -81,7 +85,7 @@ def discover_extension_folders_from_files(changed_files: List[str]) -> Set[pathl
     for raw in changed_files:
         p = pathlib.Path(raw).resolve()
         # Walk up to find a path whose parent is the extensions/ dir.
-        # e.g. extensions/contoso.quick-notes/extension.json -> extensions/contoso.quick-notes
+        # e.g. extensions/quick-notes/extension.json -> extensions/quick-notes
         try:
             rel = p.relative_to(EXTENSIONS_DIR)
         except ValueError:
@@ -177,7 +181,14 @@ def validate_extension(folder: pathlib.Path, schema: dict, id_index: dict[str, p
             f"does not match folder name \"{folder_name}\""
         )
 
-    # 5. Icon file must exist, be PNG/SVG, and ≤100 KB
+    # 5. id must be a valid V2 slug (lowercase alphanumeric + hyphens)
+    if ext_id and not ID_PATTERN.match(ext_id):
+        errors.append(
+            f"{folder_name}/extension.json: 'id' field \"{ext_id}\" is not a valid slug. "
+            f"Must be lowercase alphanumeric with hyphens (e.g. \"quick-notes\")."
+        )
+
+    # 6. Icon file must exist, be PNG/SVG, and ≤100 KB
     icon_filename = data.get("icon", "")
     if icon_filename:
         icon_path = folder / icon_filename
@@ -200,7 +211,7 @@ def validate_extension(folder: pathlib.Path, schema: dict, id_index: dict[str, p
                     f"exceeds {MAX_ICON_SIZE_KB} KB limit"
                 )
 
-    # 6. Category must be from the predefined list
+    # 7. Category must be from the predefined list (when provided)
     category = data.get("category", "")
     if category and category not in VALID_CATEGORIES:
         errors.append(
@@ -208,7 +219,7 @@ def validate_extension(folder: pathlib.Path, schema: dict, id_index: dict[str, p
             f"Must be one of: {', '.join(sorted(VALID_CATEGORIES))}"
         )
 
-    # 7. Tags validation
+    # 8. Tags validation (when provided)
     tags = data.get("tags", [])
     if isinstance(tags, list):
         if len(tags) > MAX_TAGS:
@@ -223,7 +234,7 @@ def validate_extension(folder: pathlib.Path, schema: dict, id_index: dict[str, p
                     f"exceeds {MAX_TAG_LENGTH} character limit ({len(tag)} chars)"
                 )
 
-    # 8. Duplicate ID check across the gallery
+    # 9. Duplicate ID check across the gallery
     if ext_id and ext_id in id_index:
         other = id_index[ext_id]
         errors.append(
@@ -246,7 +257,7 @@ def main() -> int:
     parser.add_argument(
         "files",
         nargs="*",
-        help="Changed file paths (e.g. extensions/contoso.quick-notes/extension.json). "
+        help="Changed file paths (e.g. extensions/quick-notes/extension.json). "
         "If omitted, validates ALL extensions under extensions/.",
     )
     parser.add_argument(

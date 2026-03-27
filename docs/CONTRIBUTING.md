@@ -14,8 +14,8 @@ Before you begin, make sure you have:
 - A **GitHub account**
 - Your extension **already published** on one of the supported install sources:
   - [winget](https://github.com/microsoft/winget-pkgs) (Windows Package Manager)
-  - [GitHub Releases](https://docs.github.com/en/repositories/releasing-projects-on-github)
   - [Microsoft Store](https://apps.microsoft.com/)
+  - Direct download URL
 
 ## Step-by-step submission guide
 
@@ -34,25 +34,24 @@ git checkout -b add-my-extension
 Create a folder under `extensions/` using the naming convention:
 
 ```
-extensions/<publisher>.<extension-id>/
+extensions/<extension-id>/
 ```
 
 **Naming rules:**
 
 | Rule | Detail |
 |------|--------|
-| Format | `<publisher>.<extension-id>` |
+| Format | `<extension-id>` — a simple slug |
 | Characters | Lowercase alphanumeric characters and hyphens only (`a-z`, `0-9`, `-`) |
-| Separator | A single dot (`.`) separates publisher from extension name |
 | Hyphens | Use hyphens to separate words (e.g., `quick-notes`, not `quicknotes`) |
-| No leading/trailing hyphens | Each segment must start and end with an alphanumeric character |
+| No leading/trailing hyphens | Must start and end with an alphanumeric character |
 
 **Examples:**
 
-- ✅ `contoso.quick-notes`
-- ✅ `my-company.clipboard-manager`
-- ❌ `Contoso.QuickNotes` (uppercase not allowed)
-- ❌ `contoso_quick_notes` (underscores not allowed, missing dot separator)
+- ✅ `media-controls`
+- ✅ `clipboard-manager`
+- ❌ `MediaControls` (uppercase not allowed)
+- ❌ `clipboard_manager` (underscores not allowed)
 
 ### 4. Add `extension.json`
 
@@ -61,20 +60,23 @@ Create an `extension.json` file inside your folder. Here is the full template wi
 ```json
 {
   "$schema": "../../.github/schemas/extension.schema.json",
-  "id": "publisher.extension-id",
-  "name": "My Extension",
+  "id": "my-extension",
+  "title": "My Extension",
   "description": "A short description of what the extension does (max 200 characters).",
-  "publisher": "Publisher Display Name",
-  "version": "1.0.0",
+  "author": {
+    "name": "Publisher Display Name",
+    "url": "https://github.com/publisher"
+  },
   "category": "Utilities",
   "tags": ["tag1", "tag2"],
   "icon": "icon.png",
-  "installSource": {
-    "type": "winget",
-    "value": "Publisher.PackageName"
-  },
-  "homepage": "https://github.com/publisher/extension",
-  "license": "MIT"
+  "installSources": [
+    {
+      "type": "winget",
+      "id": "Publisher.PackageName"
+    }
+  ],
+  "homepage": "https://github.com/publisher/extension"
 }
 ```
 
@@ -83,17 +85,15 @@ Create an `extension.json` file inside your folder. Here is the full template wi
 | Field | Required | Description |
 |-------|----------|-------------|
 | `$schema` | Optional | Path to the JSON schema. Enables editor autocompletion and validation. Use `"../../.github/schemas/extension.schema.json"`. |
-| `id` | **Required** | Unique identifier in `<publisher>.<extension-id>` format. **Must match your folder name exactly.** |
-| `name` | **Required** | Human-readable display name (max 100 characters). |
+| `id` | **Required** | Unique identifier slug (e.g., `media-controls`). **Must match your folder name exactly.** |
+| `title` | **Required** | Human-readable display name (max 100 characters). |
 | `description` | **Required** | Short description of the extension (max 200 characters). |
-| `publisher` | **Required** | Publisher display name (max 100 characters). |
-| `version` | **Required** | Semantic version string (e.g., `1.0.0`, `2.1.0-beta.1`). |
-| `category` | **Required** | Primary category. Must be one of the valid categories listed below. |
+| `author` | **Required** | Object with `name` (required, max 100 characters) and `url` (optional). |
+| `category` | Optional | Primary category. Must be one of the valid categories listed below. |
 | `tags` | Optional | Up to 5 freeform tags for filtering (each max 30 characters). |
 | `icon` | **Required** | Filename of the icon in the same folder (e.g., `icon.png`). |
-| `installSource` | **Required** | Object with `type` and `value` describing where to install the extension. |
+| `installSources` | **Required** | Array of install source objects. Each has a `type` and a type-specific identifier. See below. |
 | `homepage` | Optional | URL to the project homepage or repository. |
-| `license` | Optional | SPDX license identifier (e.g., `MIT`, `Apache-2.0`). |
 
 #### Valid categories
 
@@ -110,13 +110,13 @@ Create an `extension.json` file inside your folder. Here is the full template wi
 
 #### Install source types
 
-The `installSource` object has two fields — `type` and `value`:
+Each object in the `installSources` array has a `type` and a type-specific field:
 
-| Type | Value | Example |
-|------|-------|---------|
-| `winget` | The winget package identifier | `"Publisher.PackageName"` |
-| `github` | Full URL to the GitHub repository or releases page | `"https://github.com/publisher/repo"` |
-| `store` | Microsoft Store link or product ID | `"https://apps.microsoft.com/detail/..."` |
+| Type | Field | Description | Example |
+|------|-------|-------------|---------|
+| `winget` | `id` | The winget package identifier | `"Publisher.PackageName"` |
+| `msstore` | `id` | Microsoft Store product ID | `"9n3bq81g19k7"` |
+| `url` | `uri` | Direct download URL | `"https://example.com/extension.msix"` |
 
 ### 5. Add an icon
 
@@ -132,8 +132,8 @@ Place an icon file in your extension folder alongside `extension.json`.
 Push your branch to your fork and open a pull request targeting the `main` branch of this repository.
 
 ```bash
-git add extensions/my-publisher.my-extension/
-git commit -m "Add my-publisher.my-extension to gallery"
+git add extensions/my-extension/
+git commit -m "Add my-extension to gallery"
 git push origin add-my-extension
 ```
 
@@ -159,14 +159,14 @@ A maintainer will review your PR. Once approved and merged, your extension will 
 To update an already-published extension (e.g., bump the version, update the description, or change the icon):
 
 1. Create a new branch in your fork
-2. Update the files in your existing `extensions/<publisher>.<extension-id>/` folder
+2. Update the files in your existing `extensions/<extension-id>/` folder
 3. Open a new pull request targeting `main`
 
 The same CI validation and review process applies.
 
 ## Reference
 
-See [`extensions/microsoft.sample-extension/`](../extensions/microsoft.sample-extension/) for a complete working example of a gallery submission.
+See [`extensions/sample-extension/`](../extensions/sample-extension/) for a complete working example of a gallery submission.
 
 ## Schema reference
 

@@ -23,7 +23,7 @@ https://raw.githubusercontent.com/microsoft/CmdPal-Extensions/main/extensions.js
 ```
 CmdPal-Extensions/
 ├── extensions/                  # One folder per extension submission
-│   └── <publisher>.<ext-id>/
+│   └── <extension-id>/
 │       ├── extension.json       # Extension metadata
 │       └── icon.png             # Extension icon
 ├── extensions.json              # Auto-generated aggregate (do not edit)

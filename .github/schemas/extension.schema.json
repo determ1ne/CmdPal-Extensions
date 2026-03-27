@@ -4,7 +4,7 @@
   "title": "Command Palette Extension",
   "description": "Schema for a Command Palette extension submission.",
   "type": "object",
-  "required": ["id", "name", "description", "publisher", "version", "category", "icon", "installSource"],
+  "required": ["id", "title", "description", "author", "icon", "installSources"],
   "additionalProperties": false,
   "properties": {
     "$schema": {
@@ -13,11 +13,11 @@
     },
     "id": {
       "type": "string",
-      "description": "Unique extension identifier in <publisher>.<name> format. Must match the folder name.",
-      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*\\.[a-z0-9]+(-[a-z0-9]+)*$",
-      "examples": ["contoso.quick-notes", "microsoft.sample-extension"]
+      "description": "Unique extension identifier (slug). Must match the folder name.",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "examples": ["media-controls", "quick-notes", "sample-extension"]
     },
-    "name": {
+    "title": {
       "type": "string",
       "description": "Human-readable display name for the extension.",
       "minLength": 1,
@@ -29,17 +29,34 @@
       "minLength": 1,
       "maxLength": 200
     },
-    "publisher": {
-      "type": "string",
-      "description": "Publisher display name.",
-      "minLength": 1,
-      "maxLength": 100
+    "author": {
+      "type": "object",
+      "description": "Extension author information.",
+      "required": ["name"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Author display name.",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "url": {
+          "type": "string",
+          "description": "URL to the author's website or profile.",
+          "format": "uri"
+        }
+      }
     },
-    "version": {
+    "icon": {
       "type": "string",
-      "description": "Semantic version string.",
-      "pattern": "^\\d+\\.\\d+\\.\\d+(-[a-zA-Z0-9.]+)?$",
-      "examples": ["1.0.0", "2.1.0-beta.1"]
+      "description": "Filename of the icon in the same folder. Must be a .png or .svg file.",
+      "pattern": "^[\\w.-]+\\.(png|svg)$"
+    },
+    "homepage": {
+      "type": "string",
+      "description": "URL to the project homepage or repository.",
+      "format": "uri"
     },
     "category": {
       "type": "string",
@@ -68,38 +85,41 @@
       "maxItems": 5,
       "uniqueItems": true
     },
-    "icon": {
-      "type": "string",
-      "description": "Filename of the icon in the same folder. Must be a .png or .svg file.",
-      "pattern": "^[\\w.-]+\\.(png|svg)$"
-    },
-    "installSource": {
-      "type": "object",
-      "description": "Where and how to install this extension.",
-      "required": ["type", "value"],
-      "additionalProperties": false,
-      "properties": {
-        "type": {
-          "type": "string",
-          "description": "Installation source type.",
-          "enum": ["winget", "github", "store"]
-        },
-        "value": {
-          "type": "string",
-          "description": "Package identifier, GitHub repo URL, or Microsoft Store link.",
-          "minLength": 1
-        }
+    "installSources": {
+      "type": "array",
+      "description": "One or more installation sources for this extension.",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "description": "An installation source.",
+        "required": ["type"],
+        "oneOf": [
+          {
+            "properties": {
+              "type": { "const": "winget" },
+              "id": { "type": "string", "description": "Winget package identifier.", "minLength": 1 }
+            },
+            "required": ["type", "id"],
+            "additionalProperties": false
+          },
+          {
+            "properties": {
+              "type": { "const": "msstore" },
+              "id": { "type": "string", "description": "Microsoft Store product ID.", "minLength": 1 }
+            },
+            "required": ["type", "id"],
+            "additionalProperties": false
+          },
+          {
+            "properties": {
+              "type": { "const": "url" },
+              "uri": { "type": "string", "description": "Direct download or release page URL.", "format": "uri" }
+            },
+            "required": ["type", "uri"],
+            "additionalProperties": false
+          }
+        ]
       }
-    },
-    "homepage": {
-      "type": "string",
-      "description": "URL to the project homepage or repository.",
-      "format": "uri"
-    },
-    "license": {
-      "type": "string",
-      "description": "SPDX license identifier (e.g., MIT, Apache-2.0).",
-      "maxLength": 50
     }
   }
 }
