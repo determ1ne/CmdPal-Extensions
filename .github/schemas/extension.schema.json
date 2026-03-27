@@ -1,0 +1,116 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://raw.githubusercontent.com/microsoft/CmdPal-Extensions/main/.github/schemas/extension.schema.json",
+  "title": "Command Palette Extension",
+  "description": "Schema for a Command Palette extension submission.",
+  "type": "object",
+  "required": ["id", "title", "description", "author", "icon", "installSources"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Reference to this schema file."
+    },
+    "id": {
+      "type": "string",
+      "description": "Unique extension identifier in author.extension-name format. Must match the folder path (author/extension-name).",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*\\.[a-z0-9]+(-[a-z0-9]+)*$",
+      "examples": ["jiripolasek.media-controls", "microsoft.sample-extension"]
+    },
+    "title": {
+      "type": "string",
+      "description": "Human-readable display name for the extension.",
+      "minLength": 1,
+      "maxLength": 100,
+      "examples": ["Media Controls for Command Palette", "Quick Notes", "Clipboard Manager"]
+    },
+    "description": {
+      "type": "string",
+      "description": "Short description of the extension.",
+      "minLength": 1,
+      "maxLength": 200,
+      "examples": ["Manage audio or video playback and switch between media apps directly from Command Palette."]
+    },
+    "author": {
+      "type": "object",
+      "description": "Extension author information.",
+      "required": ["name"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Author display name.",
+          "minLength": 1,
+          "maxLength": 100,
+          "examples": ["Jiri Polasek", "Microsoft"]
+        },
+        "url": {
+          "type": "string",
+          "description": "URL to the author's website or profile.",
+          "format": "uri",
+          "examples": ["https://jiripolasek.com", "https://github.com/microsoft"]
+        }
+      }
+    },
+    "icon": {
+      "type": "string",
+      "description": "Filename of the icon in the same folder. Must be a .png or .svg file.",
+      "pattern": "^[\\w.-]+\\.(png|svg)$",
+      "examples": ["icon.png", "icon.svg"]
+    },
+    "homepage": {
+      "type": "string",
+      "description": "URL to the project homepage or repository.",
+      "format": "uri",
+      "examples": ["https://github.com/jiripolasek/MediaControlsExtension"]
+    },
+    "tags": {
+      "type": "array",
+      "description": "Optional freeform tags for filtering. Maximum 5 tags.",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 30
+      },
+      "maxItems": 5,
+      "uniqueItems": true,
+      "examples": [["media", "playback", "audio"]]
+    },
+    "installSources": {
+      "type": "array",
+      "description": "One or more installation sources for this extension.",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "description": "An installation source.",
+        "required": ["type"],
+        "oneOf": [
+          {
+            "properties": {
+              "type": { "const": "winget" },
+              "id": { "type": "string", "description": "Winget package identifier.", "minLength": 1, "examples": ["JiriPolasek.MediaControlsforCommandPalette"] }
+            },
+            "required": ["type", "id"],
+            "additionalProperties": false
+          },
+          {
+            "properties": {
+              "type": { "const": "msstore" },
+              "id": { "type": "string", "description": "Microsoft Store product ID.", "minLength": 1, "examples": ["9n3bq81g19k7"] }
+            },
+            "required": ["type", "id"],
+            "additionalProperties": false
+          },
+          {
+            "properties": {
+              "type": { "const": "url" },
+              "uri": { "type": "string", "description": "Direct download or release page URL.", "format": "uri", "examples": ["https://github.com/jiripolasek/MediaControlsExtension/releases"] }
+            },
+            "required": ["type", "uri"],
+            "additionalProperties": false
+          }
+        ]
+      }
+    }
+  }
+}

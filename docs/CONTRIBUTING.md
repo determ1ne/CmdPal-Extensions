@@ -4,7 +4,7 @@ Welcome! We're excited that you want to share your extension with the Command Pa
 
 ## Overview
 
-This repository is the **community gallery** for [Microsoft Command Palette](https://github.com/microsoft/PowerToys) extensions. Each extension is represented by a folder containing metadata and an icon. A CI pipeline aggregates all submissions into a single `generated/extensions.json` file that the Command Palette app fetches at runtime.
+This repository is the **community gallery** for [Microsoft Command Palette](https://github.com/microsoft/PowerToys) extensions. Each extension is represented by a folder containing metadata and an icon. A CI pipeline aggregates all submissions into a single `extensions.json` file at the repo root that the Command Palette app fetches at runtime.
 
 ## Prerequisites
 
@@ -14,8 +14,8 @@ Before you begin, make sure you have:
 - A **GitHub account**
 - Your extension **already published** on one of the supported install sources:
   - [winget](https://github.com/microsoft/winget-pkgs) (Windows Package Manager)
-  - [GitHub Releases](https://docs.github.com/en/repositories/releasing-projects-on-github)
   - [Microsoft Store](https://apps.microsoft.com/)
+  - Direct download or release page URL
 
 ## Step-by-step submission guide
 
@@ -34,25 +34,24 @@ git checkout -b add-my-extension
 Create a folder under `extensions/` using the naming convention:
 
 ```
-extensions/<publisher>.<extension-id>/
+extensions/<author>/<extension-name>/
 ```
 
 **Naming rules:**
 
 | Rule | Detail |
 |------|--------|
-| Format | `<publisher>.<extension-id>` |
-| Characters | Lowercase alphanumeric characters and hyphens only (`a-z`, `0-9`, `-`) |
-| Separator | A single dot (`.`) separates publisher from extension name |
-| Hyphens | Use hyphens to separate words (e.g., `quick-notes`, not `quicknotes`) |
+| Structure | `<author>/<extension-name>` — author folder containing extension folder |
+| Author | Your name or org, lowercase alphanumeric + hyphens (e.g., `jiripolasek`, `microsoft`) |
+| Extension name | Lowercase alphanumeric + hyphens (e.g., `media-controls`) |
 | No leading/trailing hyphens | Each segment must start and end with an alphanumeric character |
 
 **Examples:**
 
-- ✅ `contoso.quick-notes`
-- ✅ `my-company.clipboard-manager`
-- ❌ `Contoso.QuickNotes` (uppercase not allowed)
-- ❌ `contoso_quick_notes` (underscores not allowed, missing dot separator)
+- ✅ `jiripolasek/media-controls`
+- ✅ `my-company/clipboard-manager`
+- ❌ `MediaControls` (missing author folder, uppercase)
+- ❌ `my_company/clipboard_manager` (underscores not allowed)
 
 ### 4. Add `extension.json`
 
@@ -60,21 +59,23 @@ Create an `extension.json` file inside your folder. Here is the full template wi
 
 ```json
 {
-  "$schema": "../../schemas/extension.schema.json",
-  "id": "publisher.extension-id",
-  "name": "My Extension",
+  "$schema": "../../../.github/schemas/extension.schema.json",
+  "id": "publisher.my-extension",
+  "title": "My Extension",
   "description": "A short description of what the extension does (max 200 characters).",
-  "publisher": "Publisher Display Name",
-  "version": "1.0.0",
-  "category": "Utilities",
+  "author": {
+    "name": "Publisher Display Name",
+    "url": "https://github.com/publisher"
+  },
   "tags": ["tag1", "tag2"],
   "icon": "icon.png",
-  "installSource": {
-    "type": "winget",
-    "value": "Publisher.PackageName"
-  },
-  "homepage": "https://github.com/publisher/extension",
-  "license": "MIT"
+  "installSources": [
+    {
+      "type": "winget",
+      "id": "Publisher.PackageName"
+    }
+  ],
+  "homepage": "https://github.com/publisher/extension"
 }
 ```
 
@@ -82,41 +83,25 @@ Create an `extension.json` file inside your folder. Here is the full template wi
 
 | Field | Required | Description |
 |-------|----------|-------------|
-| `$schema` | Optional | Path to the JSON schema. Enables editor autocompletion and validation. Use `"../../schemas/extension.schema.json"`. |
-| `id` | **Required** | Unique identifier in `<publisher>.<extension-id>` format. **Must match your folder name exactly.** |
-| `name` | **Required** | Human-readable display name (max 100 characters). |
+| `$schema` | Optional | Path to the JSON schema. Enables editor autocompletion and validation. Use `"../../../.github/schemas/extension.schema.json"`. |
+| `id` | **Required** | Unique identifier in `author.extension-name` format (e.g., `jiripolasek.media-controls`). **Must match your folder path** (`author/extension-name`). |
+| `title` | **Required** | Human-readable display name (max 100 characters). |
 | `description` | **Required** | Short description of the extension (max 200 characters). |
-| `publisher` | **Required** | Publisher display name (max 100 characters). |
-| `version` | **Required** | Semantic version string (e.g., `1.0.0`, `2.1.0-beta.1`). |
-| `category` | **Required** | Primary category. Must be one of the valid categories listed below. |
+| `author` | **Required** | Object with `name` (required, max 100 characters) and `url` (optional). |
 | `tags` | Optional | Up to 5 freeform tags for filtering (each max 30 characters). |
 | `icon` | **Required** | Filename of the icon in the same folder (e.g., `icon.png`). |
-| `installSource` | **Required** | Object with `type` and `value` describing where to install the extension. |
+| `installSources` | **Required** | Array of install source objects. Each has a `type` and a type-specific identifier. See below. |
 | `homepage` | Optional | URL to the project homepage or repository. |
-| `license` | Optional | SPDX license identifier (e.g., `MIT`, `Apache-2.0`). |
-
-#### Valid categories
-
-- `Developer Tools`
-- `Productivity`
-- `Utilities`
-- `System`
-- `Media`
-- `Communication`
-- `Education`
-- `Entertainment`
-- `Security`
-- `Other`
 
 #### Install source types
 
-The `installSource` object has two fields — `type` and `value`:
+Each object in the `installSources` array has a `type` and a type-specific field:
 
-| Type | Value | Example |
-|------|-------|---------|
-| `winget` | The winget package identifier | `"Publisher.PackageName"` |
-| `github` | Full URL to the GitHub repository or releases page | `"https://github.com/publisher/repo"` |
-| `store` | Microsoft Store link or product ID | `"https://apps.microsoft.com/detail/..."` |
+| Type | Field | Description | Example |
+|------|-------|-------------|---------|
+| `winget` | `id` | The winget package identifier | `"Publisher.PackageName"` |
+| `msstore` | `id` | Microsoft Store product ID | `"9n3bq81g19k7"` |
+| `url` | `uri` | Direct download or release page URL | `"https://github.com/publisher/extension/releases"` |
 
 ### 5. Add an icon
 
@@ -132,7 +117,7 @@ Place an icon file in your extension folder alongside `extension.json`.
 Push your branch to your fork and open a pull request targeting the `main` branch of this repository.
 
 ```bash
-git add extensions/my-publisher.my-extension/
+git add extensions/my-publisher/my-extension/
 git commit -m "Add my-publisher.my-extension to gallery"
 git push origin add-my-extension
 ```
@@ -145,7 +130,7 @@ Our CI pipeline automatically validates your submission. It checks that:
 
 - Your `extension.json` conforms to the schema
 - Required fields are present and correctly formatted
-- The `id` matches the folder name
+- The `id` matches the folder path (`author.extension-name` ↔ `author/extension-name/`)
 - The icon file exists and is within size limits
 
 If the CI reports errors, review the logs, fix the issues, and push updated commits to your PR branch.
@@ -159,14 +144,14 @@ A maintainer will review your PR. Once approved and merged, your extension will 
 To update an already-published extension (e.g., bump the version, update the description, or change the icon):
 
 1. Create a new branch in your fork
-2. Update the files in your existing `extensions/<publisher>.<extension-id>/` folder
+2. Update the files in your existing `extensions/<author>/<extension-name>/` folder
 3. Open a new pull request targeting `main`
 
 The same CI validation and review process applies.
 
 ## Reference
 
-See [`extensions/microsoft.sample-extension/`](../extensions/microsoft.sample-extension/) for a complete working example of a gallery submission.
+See [`extensions/microsoft/sample-extension/`](../extensions/microsoft/sample-extension/) for a complete working example of a gallery submission.
 
 ## Schema reference
 
@@ -174,7 +159,7 @@ For editor autocompletion and inline validation, add the `$schema` property to t
 
 ```json
 {
-  "$schema": "../../schemas/extension.schema.json"
+  "$schema": "../../../.github/schemas/extension.schema.json"
 }
 ```
 
